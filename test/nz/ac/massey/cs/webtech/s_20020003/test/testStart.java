@@ -50,7 +50,7 @@ public class testStart {
     public void tearDown() {
     }
 
-    // Test for 200 OK response
+    // Test for 200 OK response -- POST
     @Test
     public void testRequest() throws Exception {
         CloseableHttpClient client = HttpClients.createDefault();
@@ -59,7 +59,7 @@ public class testStart {
         assertEquals(response.getCode(), HttpStatus.SC_OK);
     }
 
-    // Test for unique session IDs
+    // Test for unique session IDs -- POST
     @Test
     public void testSession() throws Exception {
         List<String> ids = new ArrayList<>();
