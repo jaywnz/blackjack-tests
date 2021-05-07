@@ -21,6 +21,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import org.apache.hc.client5.http.classic.methods.HttpPost;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
@@ -51,7 +52,7 @@ public class testWon {
     public void tearDown() {
     }
 
-    // test winner is none on user's turn
+    // test winner is none on user's turn -- POST
     @Test
     public void testWinnerNone() throws Exception {
         CloseableHttpClient client = HttpClients.createDefault();
@@ -70,27 +71,36 @@ public class testWon {
     // test proportion of wins when user tries to lose -- POST
     @Test
     public void testWinChance() throws Exception {
-        // FIXME -- hangs on subsequent games
         int userWins = 0;
         int dealerWins = 0;
 
         CloseableHttpClient client = HttpClients.createDefault();
+        // set up session id
+        HttpPost postId = new HttpPost(server_url + "/jack/start");
+        CloseableHttpResponse response = client.execute(postId);
+        String jsessionid = Arrays.toString(response.getHeaders("Set-Cookie"));
 
-        // play 20 games
+        // play 10 games
         for (int i = 0; i < 10; i++) {
             HttpPost post1 = new HttpPost(server_url + "/jack/start");
+            // ensure same session id
+            post1.addHeader("Cookie", jsessionid);
             client.execute(post1);
+
             // blind hit 10x, servlet forces stand when hit makes user bust
             for (int j = 0; j < 10; j++) {
                 HttpPost post2 = new HttpPost(server_url + "/jack/move/hit");
+                post2.addHeader("Cookie", jsessionid);
                 CloseableHttpResponse response2 = client.execute(post2);
                 if (response2.getCode() == HttpStatus.SC_BAD_REQUEST) {
                     break;
                 }
+//                TimeUnit.SECONDS.sleep(5);
             }
-            HttpPost post4 = new HttpPost(server_url + "/jack/won");
-            CloseableHttpResponse response = client.execute(post4);
-            String content = getResponseBody(response.getEntity().getContent());
+            HttpPost post3 = new HttpPost(server_url + "/jack/won");
+            post3.addHeader("Cookie", jsessionid);
+            CloseableHttpResponse response4 = client.execute(post3);
+            String content = getResponseBody(response4.getEntity().getContent());
 
             if ("user".equals(content)) {
                 userWins++;
@@ -98,7 +108,7 @@ public class testWon {
                 dealerWins++;
             }
         }
-        
+
         // calculate win proportion
         double prop = dealerWins / userWins;
         if (prop < 0.5) {
@@ -117,6 +127,21 @@ public class testWon {
         } else {
             throw new Exception("Issue getting a 404 response from won.");
         }
+    }
+
+//    // Retrieve jsessionid cookie
+//    public String getSessionId() throws Exception {
+//        CloseableHttpClient client = HttpClients.createDefault();
+//        HttpPost post = new HttpPost(server_url);
+//        CloseableHttpResponse response = client.execute(post);
+//        Header[] jsessionid = response.getHeaders("Set-Cookie");
+//        String id = Arrays.toString(jsessionid);
+//        return id;
+//    }
+    public HttpPost setSessionId(HttpPost request) throws Exception {
+
+        return request;
+
     }
 
     // getResponseBody() Author: slal
