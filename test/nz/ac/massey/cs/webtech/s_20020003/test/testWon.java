@@ -21,8 +21,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import org.apache.hc.client5.http.classic.methods.HttpPost;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
@@ -68,53 +68,28 @@ public class testWon {
         assertTrue(content.get(1).contains("none"));
     }
 
-    // test proportion of wins when user tries to lose -- POST
+    // test winner when user attempts to lose -- POST
     @Test
-    public void testWinChance() throws Exception {
-        int userWins = 0;
-        int dealerWins = 0;
-
+    public void testWinnerComputer() throws Exception {
         CloseableHttpClient client = HttpClients.createDefault();
-        // set up session id
-        HttpPost postId = new HttpPost(server_url + "/jack/start");
-        CloseableHttpResponse response = client.execute(postId);
-        String jsessionid = Arrays.toString(response.getHeaders("Set-Cookie"));
+        HttpPost post1 = new HttpPost(server_url + "/jack/start");
+        client.execute(post1);
 
-        // play 10 games
-        for (int i = 0; i < 10; i++) {
-            HttpPost post1 = new HttpPost(server_url + "/jack/start");
-            // ensure same session id
-            post1.addHeader("Cookie", jsessionid);
-            client.execute(post1);
-
-            // blind hit 10x, servlet forces stand when hit makes user bust
-            for (int j = 0; j < 10; j++) {
-                HttpPost post2 = new HttpPost(server_url + "/jack/move/hit");
-                post2.addHeader("Cookie", jsessionid);
-                CloseableHttpResponse response2 = client.execute(post2);
-                if (response2.getCode() == HttpStatus.SC_BAD_REQUEST) {
-                    break;
-                }
-//                TimeUnit.SECONDS.sleep(5);
+        // blind hit 6x; servlet forces stand when hit makes user bust
+        for (int j = 0; j < 6; j++) {
+            HttpPost post2 = new HttpPost(server_url + "/jack/move/hit");
+            CloseableHttpResponse response2 = client.execute(post2);
+            if (response2.getCode() == HttpStatus.SC_BAD_REQUEST) {
+                break;
             }
-            HttpPost post3 = new HttpPost(server_url + "/jack/won");
-            post3.addHeader("Cookie", jsessionid);
-            CloseableHttpResponse response4 = client.execute(post3);
-            String content = getResponseBody(response4.getEntity().getContent());
-
-            if ("user".equals(content)) {
-                userWins++;
-            } else if ("computer".equals(content)) {
-                dealerWins++;
-            }
+            TimeUnit.SECONDS.sleep(1);
         }
 
-        // calculate win proportion
-        double prop = dealerWins / userWins;
-        if (prop < 0.5) {
-        } else {
-            throw new Exception("Dealer won more than 5% of games.");
-        }
+        HttpPost post3 = new HttpPost(server_url + "/jack/won");
+        CloseableHttpResponse response4 = client.execute(post3);
+        String content = getResponseBody(response4.getEntity().getContent());
+
+        assertTrue(content.contains("computer"));
     }
 
     // test 404 Not Found when no active game on won -- POST
@@ -127,21 +102,6 @@ public class testWon {
         } else {
             throw new Exception("Issue getting a 404 response from won.");
         }
-    }
-
-//    // Retrieve jsessionid cookie
-//    public String getSessionId() throws Exception {
-//        CloseableHttpClient client = HttpClients.createDefault();
-//        HttpPost post = new HttpPost(server_url);
-//        CloseableHttpResponse response = client.execute(post);
-//        Header[] jsessionid = response.getHeaders("Set-Cookie");
-//        String id = Arrays.toString(jsessionid);
-//        return id;
-//    }
-    public HttpPost setSessionId(HttpPost request) throws Exception {
-
-        return request;
-
     }
 
     // getResponseBody() Author: slal
