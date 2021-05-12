@@ -22,6 +22,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
+import org.apache.hc.client5.http.classic.methods.HttpGet;
 import org.apache.hc.client5.http.classic.methods.HttpPost;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
@@ -57,28 +58,40 @@ public class testMove {
     public void testHit() throws Exception {
         CloseableHttpClient client = HttpClients.createDefault();
 
-        String[] uris = {"/jack/start", "/jack/move/hit", "/jack/move/hit"};
         List<String> content = new ArrayList<>();
 
-        for (String s : uris) {
-            HttpPost post = new HttpPost(server_url + s);
-            CloseableHttpResponse response = client.execute(post);
-            if (response.getCode() == HttpStatus.SC_BAD_REQUEST) {
-                throw new Exception("400 Bad Request: User already bust. Run test again.");
-            }
-            content.add(getResponseBody(response.getEntity().getContent()));
+        HttpPost post1 = new HttpPost(server_url + "/jack/start");
+        client.execute(post1);
+
+        // check state of hand before
+        HttpGet get1 = new HttpGet(server_url + "/jack/state");
+        CloseableHttpResponse response1 = client.execute(get1);
+        content.add(getResponseBody(response1.getEntity().getContent()));
+
+        HttpPost post2 = new HttpPost(server_url + "/jack/move/hit");
+        CloseableHttpResponse response2 = client.execute(post2);
+        if (response2.getCode() == HttpStatus.SC_BAD_REQUEST) {
+            throw new Exception("400 Bad Request: User already bust. Run test again.");
         }
 
-        // if second output is longer, then card has been added to user's hand
-        assertTrue(content.get(2).length() > content.get(1).length());
+        // check state of hands after hit
+        HttpGet get2 = new HttpGet(server_url + "/jack/state");
+        CloseableHttpResponse response3 = client.execute(get2);
+        content.add(getResponseBody(response3.getEntity().getContent()));
+
+        assertTrue(content.get(1).length() > content.get(0).length());
     }
 
     // test 404 Not Found when no active game on hit -- POST
     @Test
     public void testInactiveHit() throws Exception {
         CloseableHttpClient client = HttpClients.createDefault();
-        HttpPost post = new HttpPost(server_url + "/jack/move/hit");
-        CloseableHttpResponse response = client.execute(post);
+
+        HttpPost post1 = new HttpPost(server_url);
+        client.execute(post1);
+
+        HttpPost post2 = new HttpPost(server_url + "/jack/move/hit");
+        CloseableHttpResponse response = client.execute(post2);
         if (response.getCode() == HttpStatus.SC_NOT_FOUND) {
         } else {
             throw new Exception("Issue getting a 404 response from hit.");
@@ -99,15 +112,18 @@ public class testMove {
             content.add(getResponseBody(response.getEntity().getContent()));
         }
 
-        assertTrue(content.get(1).contains("dealerHand"));
+        assertTrue(content.get(1).contains("dealercards"));
     }
 
     // test 404 Not Found when no active game on stand -- POST
     @Test
     public void testInactiveStand() throws Exception {
         CloseableHttpClient client = HttpClients.createDefault();
-        HttpPost post = new HttpPost(server_url + "/jack/move/stand");
-        CloseableHttpResponse response = client.execute(post);
+        HttpPost post1 = new HttpPost(server_url);
+        client.execute(post1);
+
+        HttpPost post2 = new HttpPost(server_url + "/jack/move/stand");
+        CloseableHttpResponse response = client.execute(post2);
         if (response.getCode() == HttpStatus.SC_NOT_FOUND) {
         } else {
             throw new Exception("Issue getting a 404 response from stand.");

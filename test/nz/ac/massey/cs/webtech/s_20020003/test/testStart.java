@@ -59,23 +59,23 @@ public class testStart {
         assertEquals(response.getCode(), HttpStatus.SC_OK);
     }
 
-    // Test for unique session IDs -- POST
-    @Test
-    public void testSession() throws Exception {
-        List<String> ids = new ArrayList<>();
-        for (int i = 0; i < 2; i++) {
-            ids.add(getSessionId());
-        }
-        assertNotSame(ids.get(0), ids.get(1));
-    }
-
-    // Retrieve jsessionid cookie
-    public String getSessionId() throws Exception {
-        CloseableHttpClient client = HttpClients.createDefault();
-        HttpPost post = new HttpPost(server_url);
-        CloseableHttpResponse response = client.execute(post);
-        Header[] jsessionid = response.getHeaders("Set-Cookie");
-        String id = Arrays.toString(jsessionid);
-        return id;
-    }
+//    // Test for unique session IDs -- POST
+//    @Test
+//    public void testSession() throws Exception {
+//        List<String> ids = new ArrayList<>();
+//        for (int i = 0; i < 2; i++) {
+//            ids.add(getSessionId());
+//        }
+//        assertNotSame(ids.get(0), ids.get(1));
+//    }
+//
+//    // Retrieve jsessionid cookie
+//    public String getSessionId() throws Exception {
+//        CloseableHttpClient client = HttpClients.createDefault();
+//        HttpPost post = new HttpPost(server_url + "/jack/start");
+//        CloseableHttpResponse response = client.execute(post);
+//        Header[] jsessionid = response.getHeaders("Set-Cookie");
+//        String id = Arrays.toString(jsessionid);
+//        return id;
+//    }
 }
