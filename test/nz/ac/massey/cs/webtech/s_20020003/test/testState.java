@@ -90,7 +90,7 @@ public class testState {
     @Test
     public void testInactiveState() throws Exception {
         CloseableHttpClient client = HttpClients.createDefault();
-        
+
         HttpGet get2 = new HttpGet(server_url + "/jack/state");
         CloseableHttpResponse response = client.execute(get2);
         if (response.getCode() == HttpStatus.SC_NOT_FOUND) {

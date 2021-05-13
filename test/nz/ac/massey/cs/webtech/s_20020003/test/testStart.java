@@ -16,14 +16,10 @@
  */
 package nz.ac.massey.cs.webtech.s_20020003.test;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 import org.apache.hc.client5.http.classic.methods.HttpPost;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
 import org.apache.hc.client5.http.impl.classic.HttpClients;
-import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpStatus;
 import org.junit.After;
 import org.junit.Before;
@@ -58,24 +54,4 @@ public class testStart {
         CloseableHttpResponse response = client.execute(post);
         assertEquals(response.getCode(), HttpStatus.SC_OK);
     }
-
-//    // Test for unique session IDs -- POST
-//    @Test
-//    public void testSession() throws Exception {
-//        List<String> ids = new ArrayList<>();
-//        for (int i = 0; i < 2; i++) {
-//            ids.add(getSessionId());
-//        }
-//        assertNotSame(ids.get(0), ids.get(1));
-//    }
-//
-//    // Retrieve jsessionid cookie
-//    public String getSessionId() throws Exception {
-//        CloseableHttpClient client = HttpClients.createDefault();
-//        HttpPost post = new HttpPost(server_url + "/jack/start");
-//        CloseableHttpResponse response = client.execute(post);
-//        Header[] jsessionid = response.getHeaders("Set-Cookie");
-//        String id = Arrays.toString(jsessionid);
-//        return id;
-//    }
 }
